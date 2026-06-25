@@ -83,3 +83,4 @@ python -m http.server 8080
 
 Desarrollado como proyecto web completo con buenas prácticas: separación de responsabilidades (HTML/CSS/JS), código comentado, accesibilidad y diseño responsive.
 BORRAR GAME.JS rhyrhyrhyrhyrdsad
+HOLA
