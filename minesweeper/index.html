@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="description" content="Buscaminas — Juego clásico con diseño premium"/>
+  <title>Buscaminasgame</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💣</text></svg>"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div id="root">
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 1 — HOME
+  ════════════════════════════════════════ -->
+  <div class="screen s-active" data-screen="home" id="s-home">
+    <div class="home-wrap">
+
+      <!-- Logo -->
+      <div class="logo-block">
+        <div class="logo-icon-wrap">
+          <!-- Mine SVG icon -->
+          <svg class="logo-icon-svg" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="26" cy="26" r="14" fill="white" fill-opacity=".95"/>
+            <circle cx="26" cy="26" r="9" fill="#1e3a8a"/>
+            <!-- Spikes -->
+            <line x1="26" y1="4"  x2="26" y2="12" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="26" y1="40" x2="26" y2="48" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="4"  y1="26" x2="12" y2="26" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="40" y1="26" x2="48" y2="26" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="10" y1="10" x2="16" y2="16" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <line x1="36" y1="36" x2="42" y2="42" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <line x1="42" y1="10" x2="36" y2="16" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <line x1="16" y1="36" x2="10" y2="42" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <!-- Shine -->
+            <circle cx="22" cy="22" r="3" fill="white" fill-opacity=".6"/>
+          </svg>
+        </div>
+        <h1 class="logo-title">Busca<span>minas</span></h1>
+        <p class="logo-sub">.............................</p>
+      </div>
+
+      <!-- Best times -->
+
+      <!-- How to play -->
+      <div class="how-btn-wrap">
+        <button id="btn-info" class="btn-info" aria-label="Cómo jugar">i</button>
+        <span style="font-size:13px;font-weight:500;color:var(--txt2);">¿Cómo jugar?</span>
+        <div id="how-tooltip" class="how-tooltip" role="tooltip">
+          <div class="how-title">📖 Instrucciones</div>
+          <div class="how-item">
+            <span class="how-key">Clic</span>
+            <span class="how-text">Revelar una casilla</span>
+          </div>
+          <div class="how-item">
+            <span class="how-key">Clic der.</span>
+            <span class="how-text">Poner / quitar bandera 🚩</span>
+          </div>
+          <div class="how-item">
+            <span class="how-key">Mantener</span>
+            <span class="how-text">En móvil: poner bandera</span>
+          </div>
+          <div class="how-item">
+            <span class="how-key">Número</span>
+            <span class="how-text">Minas adyacentes a esa celda</span>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--txt3);">El primer clic nunca es una mina. ¡Encuentra todas!</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="home-cta">
+        <button id="btn-new-game" class="btn btn-primary btn-lg">
+          💣 &nbsp;Nueva Partida
+        </button>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <button id="btn-stats" class="stats-link">Ver estadísticas</button>
+          <button id="btn-sound-home" class="sound-toggle" aria-label="Sonido">🔊 Sonido</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Corner theme toggle -->
+    <button id="btn-theme" class="btn-icon" style="position:fixed;top:16px;right:16px;"
+            title="Modo oscuro/claro" aria-label="Cambiar tema">🌙</button>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 2 — DIFICULTAD
+  ════════════════════════════════════════ -->
+  <div class="screen s-right" data-screen="diff" id="s-diff">
+
+    <div class="screen-hdr">
+      <button id="btn-diff-back" class="btn-icon" aria-label="Volver">←</button>
+      <div>
+        <div class="screen-hdr-title">Selecciona <span>dificultad</span></div>
+      </div>
+    </div>
+
+    <!-- Difficulty cards -->
+    <div id="diff-list" class="diff-list"></div>
+
+    <!-- Custom fields -->
+    <div id="custom-fields" class="custom-fields card">
+      <div class="field-label" style="margin-bottom:10px;">⚙️ Configuración personalizada</div>
+      <div class="custom-row">
+        <div class="field-group">
+          <label class="field-label">Filas</label>
+          <input id="c-rows" class="field-input" type="number" min="5" max="30" value="9" placeholder="9"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Columnas</label>
+          <input id="c-cols" class="field-input" type="number" min="5" max="50" value="9" placeholder="9"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Minas</label>
+          <input id="c-mines" class="field-input" type="number" min="1" max="999" value="10" placeholder="10"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="diff-cta">
+      <button id="btn-diff-start" class="btn btn-primary">
+        💣 &nbsp;¡Empezar!
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 3 — JUEGO
+  ════════════════════════════════════════ -->
+  <div class="screen s-right" data-screen="game" id="s-game">
+
+    <!-- Game header -->
+    <div class="game-hdr">
+      <div class="game-hdr-left">
+        <button id="btn-game-home" class="btn-icon" aria-label="Menú principal">🏠</button>
+        <div>
+          <div class="game-title-sm">Buscaminas</div>
+        </div>
+        <span id="game-diff-badge" class="diff-badge"></span>
+      </div>
+
+      <div class="game-hdr-center">
+        <!-- Mines counter -->
+        <div class="hud-chip card">
+          <span class="hud-icon">🚩</span>
+          <span id="hud-mines" class="hud-val">0</span>
+        </div>
+        <!-- Timer -->
+        <div class="hud-chip card">
+          <span class="hud-icon">⏱</span>
+          <span id="hud-timer" class="hud-val">00:00</span>
+        </div>
+      </div>
+
+      <div class="game-hdr-right">
+        <button id="btn-sound-game" class="btn-icon" aria-label="Sonido">🔊</button>
+        <button id="btn-theme-game" class="btn-icon" aria-label="Tema">🌙</button>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar card">
+      <span id="status-msg" class="status-msg">🎯 ¡Encuentra todas las minas!</span>
+      <button id="btn-restart" class="btn-restart" aria-label="Reiniciar">
+        <span class="restart-icon">↺</span> Reiniciar
+      </button>
+    </div>
+
+    <!-- Board -->
+    <div class="board-wrap">
+      <div id="board"></div>
+    </div>
+
+  </div>
+
+</div><!-- #root -->
+
+
+<!-- ═══════════════════════════════════════
+     MODAL — FIN DE PARTIDA
+════════════════════════════════════════ -->
+<div id="end-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="end-title">
+  <div class="modal card">
+    <span id="end-icon"  class="modal-icon" aria-hidden="true">🏆</span>
+    <h2  id="end-title" class="modal-title win">¡Ganaste!</h2>
+    <p   id="end-sub"   class="modal-sub"></p>
+
+    <div class="modal-stats">
+      <div class="modal-stat">
+        <span id="end-time"     class="modal-stat-v">00:00</span>
+        <span class="modal-stat-l">Tiempo</span>
+      </div>
+      <div class="modal-stat">
+        <span id="end-best"     class="modal-stat-v">--:--</span>
+        <span class="modal-stat-l">Mejor tiempo</span>
+      </div>
+      <div class="modal-stat">
+        <span id="end-flags"    class="modal-stat-v">0</span>
+        <span class="modal-stat-l">Banderas</span>
+      </div>
+      <div class="modal-stat">
+        <span id="end-revealed" class="modal-stat-v">0</span>
+        <span class="modal-stat-l">Reveladas</span>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button id="end-btn-menu"   class="btn btn-ghost">🏠 Menú</button>
+      <button id="end-btn-replay" class="btn btn-primary">🔄 Jugar de nuevo</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     MODAL — ESTADÍSTICAS
+════════════════════════════════════════ -->
+<div id="stats-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+  <div class="modal card" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 id="stats-title" style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;">📊 Estadísticas</h2>
+      <button id="stats-close" class="btn-icon" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="stats-sections">
+
+      <!-- Per difficulty -->
+      <div>
+        <div class="stats-group-title">😊 Fácil</div>
+        <div id="sstat-easy" class="stats-grid"></div>
+      </div>
+      <div>
+        <div class="stats-group-title">😤 Medio</div>
+        <div id="sstat-medium" class="stats-grid"></div>
+      </div>
+      <div>
+        <div class="stats-group-title">💀 Difícil</div>
+        <div id="sstat-hard" class="stats-grid"></div>
+      </div>
+
+      <!-- History -->
+      <div>
+        <div class="stats-group-title">🕒 Historial reciente</div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+
+    </div>
+
+    <button id="stats-btn-close" class="btn btn-primary" style="width:100%;margin-top:20px;"
+            onclick="document.getElementById('stats-modal').classList.remove('show')">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+<script>
+  // Extra bindings that need DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeGame = document.getElementById('btn-theme-game');
+    if (themeGame) themeGame.addEventListener('click', () => {
+      document.getElementById('btn-theme').click();
+    });
+  });
+</script>
+</body>
+</html>
