@@ -5,9 +5,9 @@
 
 // ── Config ────────────────────────────────────────────────
 const DIFFICULTIES = {
-  easy:   { label:'Fácil',   rows:9,  cols:9,  mines:10, emoji:'😊', color:'#22c55e', bg:'rgba(34,197,94,.1)',  border:'rgba(34,197,94,.25)' },
-  medium: { label:'Medio',   rows:16, cols:16, mines:40, emoji:'😤', color:'#f59e0b', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.25)' },
-  hard:   { label:'Difícil', rows:16, cols:30, mines:99, emoji:'💀', color:'#ef4444', bg:'rgba(239,68,68,.1)',  border:'rgba(239,68,68,.25)' },
+  easy:   { label:'Fácil',   rows:9,  cols:9,  mines:10, emoji: '🙂 ',color:'#22c55e', bg:'rgba(34,197,94,.1)',  border:'rgba(34,197,94,.25)' },
+  medium: { label:'Medio',   rows:16, cols:16, mines:40, emoji : '😐' ,color:'#f59e0b', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.25)' },
+  hard:   { label:'Difícil', rows:16, cols:30, mines:99, emoji :'😵‍💫 ', color:'#ef4444', bg:'rgba(239,68,68,.1)',  border:'rgba(239,68,68,.25)' },
   custom: { label:'Personalizado', rows:9, cols:9, mines:10, emoji:'⚙️', color:'#8b5cf6', bg:'rgba(139,92,246,.1)', border:'rgba(139,92,246,.25)' }
 };
 
