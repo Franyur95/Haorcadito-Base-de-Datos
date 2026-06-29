@@ -57,7 +57,12 @@ const SFX = {
   reveal()  { tone(520,'sine',.06,.06); },
   revealN() { tone(660,'triangle',.1,.1); },
   win()     { [523,659,784,1047].forEach((n,i)=>setTimeout(()=>tone(n,'sine',.25,.18),i*80)); },
-  lose()    { [300,220,180].forEach((n,i)=>setTimeout(()=>tone(n,'sawtooth',.3,.15),i*120)); },
+  lose()    {
+    // Boom grave + ruido descendente
+    [180,140,100].forEach((n,i)=>setTimeout(()=>tone(n,'sawtooth',.45,.2),i*80));
+    setTimeout(()=>tone(60,'sawtooth',.8,.3),0);
+    setTimeout(()=>tone(80,'square',.6,.15),50);
+  },
   tick()    { tone(880,'square',.04,.05); }
 };
 
@@ -412,8 +417,8 @@ function endGame(won, explR, explC) {
     setTimeout(()=>{ SFX.win(); showEndModal(true); launchConfetti(); }, 400);
   } else {
     setStatusMsg('💥 ¡Boom! Pisaste una mina.','lose');
-    if(explR!=null) burstParticles(explR,explC);
-    setTimeout(()=>{ SFX.lose(); showEndModal(false); }, 800);
+    if(explR!=null) explodeEffect(explR,explC);
+    setTimeout(()=>{ showEndModal(false); }, 2200);
   }
 }
 
@@ -559,6 +564,230 @@ function launchConfetti() {
     document.body.appendChild(el);
     setTimeout(()=>el.remove(),3600);
   }
+}
+
+function explodeEffect(r,c) {
+  // ── Sonido bomba atómica ───────────────────────────────
+  atomicSound();
+
+  // ── Shake brutal al tablero ────────────────────────────
+  const board = $('board');
+  board.classList.add('board-shake');
+  setTimeout(() => board.classList.remove('board-shake'), 900);
+
+  // ── Canvas de explosión a pantalla completa ───────────
+  const canvas = document.createElement('canvas');
+  canvas.className = 'atomic-canvas';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const el = cellEl(r,c);
+  const rect = el ? el.getBoundingClientRect() : {left: window.innerWidth/2, top: window.innerHeight/2, width:0, height:0};
+  const ox = rect.left + rect.width  / 2;
+  const oy = rect.top  + rect.height / 2;
+
+  // Partículas de fuego
+  const particles = [];
+  for (let i = 0; i < 180; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const spd   = 2 + Math.random() * 9;
+    particles.push({
+      x: ox, y: oy,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd - (2 + Math.random()*4),
+      life: 1,
+      decay: 0.012 + Math.random() * 0.018,
+      size: 6 + Math.random() * 18,
+      hue: 15 + Math.random() * 40   // naranja-rojo
+    });
+  }
+
+  // Estado del hongo
+  const mush = { progress: 0, capR: 0, stemH: 0, ringR: 0, ringY: oy };
+  let frame = 0;
+  const totalFrames = 120;
+
+  function drawFrame() {
+    frame++;
+    const t = frame / totalFrames;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1) Flash blanco cegador al inicio
+    if (t < 0.12) {
+      const alpha = (0.12 - t) / 0.12;
+      ctx.fillStyle = `rgba(255,255,255,${alpha * 0.95})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 2) Onda de choque circular
+    if (t > 0.02 && t < 0.45) {
+      const wt     = (t - 0.02) / 0.43;
+      const wR     = wt * Math.max(canvas.width, canvas.height) * 0.85;
+      const wAlpha = Math.max(0, 0.6 - wt * 0.6);
+      ctx.beginPath();
+      ctx.arc(ox, oy, wR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,180,60,${wAlpha})`;
+      ctx.lineWidth   = 6 * (1 - wt) + 1;
+      ctx.stroke();
+    }
+
+    // 3) Partículas de fuego
+    particles.forEach(p => {
+      p.x  += p.vx * (1 - t * 0.4);
+      p.y  += p.vy;
+      p.vy += 0.12;          // gravedad leve
+      p.life -= p.decay;
+      if (p.life <= 0) return;
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * p.life);
+      grd.addColorStop(0, `hsla(${p.hue},100%,90%,${p.life})`);
+      grd.addColorStop(0.4, `hsla(${p.hue},100%,55%,${p.life * 0.8})`);
+      grd.addColorStop(1,   `hsla(${p.hue + 20},80%,20%,0)`);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    });
+
+    // 4) Hongo atómico (empieza en t=0.15)
+    if (t > 0.15) {
+      const mt  = Math.min((t - 0.15) / 0.6, 1);
+      const easeOut = 1 - Math.pow(1 - mt, 3);
+
+      // Tallo
+      const stemW  = 28 + easeOut * 60;
+      const stemTop = oy - easeOut * canvas.height * 0.72;
+      const stemGrd = ctx.createLinearGradient(ox - stemW, 0, ox + stemW, 0);
+      stemGrd.addColorStop(0,   'rgba(255,100,20,0)');
+      stemGrd.addColorStop(0.3, `rgba(255,160,40,${0.7 * easeOut})`);
+      stemGrd.addColorStop(0.5, `rgba(255,220,100,${0.9 * easeOut})`);
+      stemGrd.addColorStop(0.7, `rgba(255,160,40,${0.7 * easeOut})`);
+      stemGrd.addColorStop(1,   'rgba(255,100,20,0)');
+      ctx.fillStyle = stemGrd;
+      ctx.fillRect(ox - stemW, stemTop, stemW * 2, oy - stemTop);
+
+      // Toro / anillo en la base del tallo
+      const ringY = oy - easeOut * canvas.height * 0.22;
+      const ringR  = 30 + easeOut * 110;
+      const ringGrd = ctx.createRadialGradient(ox, ringY, ringR * 0.3, ox, ringY, ringR);
+      ringGrd.addColorStop(0,   `rgba(255,200,80,${0.5 * easeOut})`);
+      ringGrd.addColorStop(0.5, `rgba(255,120,20,${0.4 * easeOut})`);
+      ringGrd.addColorStop(1,   'rgba(200,60,0,0)');
+      ctx.beginPath();
+      ctx.ellipse(ox, ringY, ringR, ringR * 0.28, 0, 0, Math.PI * 2);
+      ctx.fillStyle = ringGrd;
+      ctx.fill();
+
+      // Copa del hongo
+      const capR  = 60 + easeOut * Math.min(canvas.width, canvas.height) * 0.38;
+      const capY  = stemTop + capR * 0.45;
+      const capGrd = ctx.createRadialGradient(ox, capY, 0, ox, capY, capR);
+      capGrd.addColorStop(0,   `rgba(255,240,160,${0.95 * easeOut})`);
+      capGrd.addColorStop(0.25,`rgba(255,160,40,${0.85 * easeOut})`);
+      capGrd.addColorStop(0.55,`rgba(200,60,10,${0.7 * easeOut})`);
+      capGrd.addColorStop(0.8, `rgba(80,20,0,${0.5 * easeOut})`);
+      capGrd.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.ellipse(ox, capY, capR, capR * 0.55, 0, 0, Math.PI * 2);
+      ctx.fillStyle = capGrd;
+      ctx.fill();
+
+      // Borde inferior de la copa (cara más oscura)
+      const rimGrd = ctx.createRadialGradient(ox, capY + capR * 0.3, capR * 0.2, ox, capY + capR * 0.3, capR);
+      rimGrd.addColorStop(0,   `rgba(120,40,0,${0.5 * easeOut})`);
+      rimGrd.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.ellipse(ox, capY + capR * 0.35, capR * 0.85, capR * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = rimGrd;
+      ctx.fill();
+    }
+
+    // 5) Fade-out general al final
+    if (t > 0.72) {
+      const alpha = (t - 0.72) / 0.28;
+      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.85})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (frame < totalFrames) {
+      requestAnimationFrame(drawFrame);
+    } else {
+      // Fade out suave del canvas
+      canvas.style.transition = 'opacity .6s';
+      canvas.style.opacity    = '0';
+      setTimeout(() => canvas.remove(), 700);
+    }
+  }
+
+  requestAnimationFrame(drawFrame);
+
+  // Partículas clásicas también
+  burstParticles(r, c);
+}
+
+// ── Sonido bomba atómica ───────────────────────────────────
+function atomicSound() {
+  try {
+    const c = ac();
+    const now = c.currentTime;
+
+    // Sub-bajo: impacto profundo
+    const sub = c.createOscillator();
+    const subG = c.createGain();
+    sub.connect(subG); subG.connect(c.destination);
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(55, now);
+    sub.frequency.exponentialRampToValueAtTime(18, now + 1.5);
+    subG.gain.setValueAtTime(0, now);
+    subG.gain.linearRampToValueAtTime(1.2, now + 0.03);
+    subG.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+    sub.start(now); sub.stop(now + 2.2);
+
+    // Ruido blanco (la onda de choque)
+    const bufSize = c.sampleRate * 2.5;
+    const buf     = c.createBuffer(1, bufSize, c.sampleRate);
+    const data    = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+    const noise   = c.createBufferSource();
+    noise.buffer  = buf;
+
+    // Filtro paso-bajo para el ruido (más grave, como explosión real)
+    const lpf = c.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(2400, now);
+    lpf.frequency.exponentialRampToValueAtTime(180, now + 1.2);
+
+    const noiseG = c.createGain();
+    noise.connect(lpf); lpf.connect(noiseG); noiseG.connect(c.destination);
+    noiseG.gain.setValueAtTime(0, now);
+    noiseG.gain.linearRampToValueAtTime(0.9, now + 0.05);
+    noiseG.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+    noise.start(now); noise.stop(now + 2.5);
+
+    // Mid-boom (cuerpo de la explosión)
+    const mid = c.createOscillator();
+    const midG = c.createGain();
+    mid.connect(midG); midG.connect(c.destination);
+    mid.type = 'sawtooth';
+    mid.frequency.setValueAtTime(120, now);
+    mid.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+    midG.gain.setValueAtTime(0, now);
+    midG.gain.linearRampToValueAtTime(0.7, now + 0.04);
+    midG.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+    mid.start(now); mid.stop(now + 1.2);
+
+    // Reverb simple: delay+feedback para cola de explosión
+    const delay = c.createDelay(0.5);
+    delay.delayTime.value = 0.18;
+    const fbG = c.createGain();
+    fbG.gain.value = 0.35;
+    noiseG.connect(delay);
+    delay.connect(fbG);
+    fbG.connect(delay);
+    fbG.connect(c.destination);
+
+  } catch(e) {}
 }
 
 function burstParticles(r,c) {

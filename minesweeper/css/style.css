@@ -657,3 +657,34 @@ h1,h2,h3{font-family:'Poppins',sans-serif;font-weight:700;line-height:1.1;}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
 }
+
+/* ── Explosion Effects ── */
+.atomic-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9000;
+}
+
+.board-shake {
+  animation: boardShake .9s ease-out;
+}
+@keyframes boardShake {
+  0%,100% { transform: translateX(0) rotate(0); }
+  10%  { transform: translateX(-14px) rotate(-2deg); }
+  25%  { transform: translateX(14px)  rotate(2deg); }
+  40%  { transform: translateX(-10px) rotate(-1deg); }
+  55%  { transform: translateX(10px)  rotate(1deg); }
+  70%  { transform: translateX(-5px); }
+  85%  { transform: translateX(5px); }
+}
+
+.cell.exploded {
+  animation: cellExplode .45s cubic-bezier(.36,.07,.19,.97) both !important;
+}
+@keyframes cellExplode {
+  0%   { transform: scale(1);    filter: brightness(1); }
+  20%  { transform: scale(1.8);  filter: brightness(3) saturate(4); }
+  50%  { transform: scale(1.4);  filter: brightness(2); }
+  100% { transform: scale(1);    filter: brightness(1); }
+}
