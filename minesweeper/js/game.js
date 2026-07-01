@@ -5,7 +5,7 @@
 
 // ── Config ────────────────────────────────────────────────
 const DIFFICULTIES = {
-  easy:   { label:'Fácil',   rows:9,  cols:9,  mines:10, emoji: '🙂 ',color:'#22c55e', bg:'rgba(34,197,94,.1)',  border:'rgba(34,197,94,.25)' },
+  easy:   { label:'Fácil',   rows:9,   cols:9,  mines:10, emoji: '🙂 ',color:'#22c55e', bg:'rgba(34,197,94,.1)',  border:'rgba(34,197,94,.25)' },
   medium: { label:'Medio',   rows:16, cols:16, mines:40, emoji : '😐' ,color:'#f59e0b', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.25)' },
   hard:   { label:'Difícil', rows:16, cols:30, mines:99, emoji :'😵‍💫 ', color:'#ef4444', bg:'rgba(239,68,68,.1)',  border:'rgba(239,68,68,.25)' },
   custom: { label:'Personalizado', rows:9, cols:9, mines:10, emoji:'⚙️', color:'#8b5cf6', bg:'rgba(139,92,246,.1)', border:'rgba(139,92,246,.25)' }
@@ -353,34 +353,44 @@ function onCellRightClick(e) {
   updateHUD();
 }
 
-// BFS flood-reveal with wave animation
+// ── FUNCIÓN RECURSIVA CLÁSICA (Flood Fill) ─────────────────────
 function floodReveal(startR, startC) {
-  const queue=[[startR,startC]], visited=new Set();
-  const toReveal=[];
-  visited.add(`${startR},${startC}`);
+  const toReveal = [];
+  const visited = new Set();
 
-  while(queue.length){
-    const [r,c]=queue.shift();
-    const cell=S.board[r][c];
-    if(cell.revealed||cell.flagged||cell.mine) continue;
-    cell.revealed=true; S.revealed++;
-    toReveal.push({r,c,dist:Math.abs(r-startR)+Math.abs(c-startC)});
-    if(cell.adj===0){
-      eachNeighbor(r,c,(_,nr,nc)=>{
-        const k=`${nr},${nc}`;
-        if(!visited.has(k)){ visited.add(k); queue.push([nr,nc]); }
-      });
+  function revealCell(r, c) {
+    if (r < 0 || r >= S.rows || c < 0 || c >= S.cols) return;
+    if (visited.has(`${r},${c}`)) return;
+    
+    const cell = S.board[r][c];
+    if (cell.revealed || cell.flagged || cell.mine) return;
+
+    visited.add(`${r},${c}`);
+    cell.revealed = true;
+    S.revealed++;
+
+    toReveal.push({ r, c, dist: Math.abs(r - startR) + Math.abs(c - startC) });
+
+    if (cell.adj === 0) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          revealCell(r + dr, c + dc);
+        }
+      }
     }
   }
 
-  // Animate with wave delay
-  toReveal.forEach(({r,c,dist})=>{
-    const delay=Math.min(dist*30,300);
-    setTimeout(()=>refreshCell(r,c,true,0),delay);
+  revealCell(startR, startC);
+
+  toReveal.forEach(({ r, c, dist }) => {
+    const delay = Math.min(dist * 30, 300);
+    setTimeout(() => refreshCell(r, c, true, 0), delay);
   });
-  if(toReveal.length>1) SFX.reveal();
+  if (toReveal.length > 1) SFX.reveal();
 }
 
+// ── End Game Lógica ───────────────────────────────────────────
 function revealAllMines() {
   for(let r=0;r<S.rows;r++) for(let c=0;c<S.cols;c++){
     const cell=S.board[r][c];
@@ -826,6 +836,7 @@ function toggleTheme() {
   try{localStorage.setItem('ms_theme',next);}catch(e){}
 }
 
+// ── Persistence ───────────────────────────────────────────
 function toggleSound() {
   S.soundOn=!S.soundOn;
   ['btn-sound-home','btn-sound-game'].forEach(id=>{
@@ -835,12 +846,11 @@ function toggleSound() {
   try{localStorage.setItem('ms_sound',S.soundOn?'1':'0');}catch(e){}
 }
 
-// ── Persistence ───────────────────────────────────────────
 function saveData() {
   try {
     localStorage.setItem('ms_stats',   JSON.stringify(S.stats));
     localStorage.setItem('ms_history', JSON.stringify(S.history));
-    console.log("Datos guardados correctamente:", S.stats); // Consola para verificar
+    console.log("Datos guardados correctamente:", S.stats);
   } catch(e) {
     console.error("Error al guardar en localStorage", e);
   }
@@ -871,7 +881,6 @@ function loadData() {
 }
 
 // ── Boot ──────────────────────────────────────────────────
-// Ejecutamos init de inmediato si el DOM ya está listo, o esperamos al evento
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
@@ -879,4 +888,3 @@ if (document.readyState === 'loading') {
 }
 
 window.addEventListener('resize', () => { if (S.screen === 'game') setCellSize(); });
-
